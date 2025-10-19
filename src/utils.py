@@ -1,5 +1,5 @@
-from typing import List,Dict
 import json
+from typing import Dict, List
 
 
 def load_transactions(file_path: str) -> List[Dict]:
@@ -24,5 +24,5 @@ def load_transactions(file_path: str) -> List[Dict]:
     except json.JSONDecodeError:
         print(f"Файл {file_path} содержит невалидный JSON или пуст")
         return []
-    except Exception as e:
+    except Exception:
         return []

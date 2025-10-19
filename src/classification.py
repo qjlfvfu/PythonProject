@@ -1,7 +1,5 @@
-import json
-
 from src.utils import load_transactions
-
+from typing import List, Dict
 
 class Product:
     name = str
@@ -35,17 +33,17 @@ class Product:
         Класс-метод для создания объекта Product из словаря
         """
         return cls(
-            name=product_data['name'],
-            description=product_data['description'],
-            quantity=product_data['quantity'],
-            price=product_data['price']
+            name=product_data["name"],
+            description=product_data["description"],
+            quantity=product_data["quantity"],
+            price=product_data["price"],
         )
 
 
 class Category:
     """Класс категорий продукта"""
 
-    products = []
+    products = list[Dict]
     total_categories = 0
     total_products = 0
 
@@ -82,7 +80,7 @@ if __name__ == "__main__":
         )
         products.append(product)
         print(products)
-        categories = []
+        categories = list[Dict]
         for category in result:
             product = Category(name=item["name"], description=item["description"], products=item["products"])
             print(categories)
