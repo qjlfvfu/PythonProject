@@ -1,8 +1,7 @@
-import json
-from typing import Any, List
 import pytest
-from src.classification import Category,Product
-from tests.confests import list_category,sausage
+
+from src.classification import Category, Product
+
 
 def test_init(sausage):
     assert sausage.name == "Колбаса"
@@ -99,27 +98,22 @@ class TestProductClassMethod:
 
     def test_new_product_valid_data(self):
         """Тест создания продукта через класс-метод с валидными данными"""
-        product_data = {
-            'name': 'Новый товар',
-            'description': 'Описание нового товара',
-            'quantity': 5,
-            'price': 200.0
-        }
+        product_data = {"name": "Новый товар", "description": "Описание нового товара", "quantity": 5, "price": 200.0}
 
         product = Product.new_product(product_data)
 
-        assert product.name == 'Новый товар'
-        assert product.description == 'Описание нового товара'
+        assert product.name == "Новый товар"
+        assert product.description == "Описание нового товара"
         assert product.quantity == 5
         assert product.price == 200.0
 
     def test_new_product_with_negative_price(self, capsys):
         """Тест создания продукта с отрицательной ценой через класс-метод"""
         product_data = {
-            'name': 'Товар с отрицательной ценой',
-            'description': 'Описание',
-            'quantity': 5,
-            'price': -100.0  # Отрицательная цена при создании
+            "name": "Товар с отрицательной ценой",
+            "description": "Описание",
+            "quantity": 5,
+            "price": -100.0,  # Отрицательная цена при создании
         }
 
         product = Product.new_product(product_data)
@@ -181,18 +175,8 @@ class TestIntegration:
     def test_full_workflow(self, capsys):
         """Тест полного рабочего процесса"""
         # Создаем продукты через класс-метод
-        product_data1 = {
-            'name': 'iPhone',
-            'description': 'Смартфон',
-            'quantity': 10,
-            'price': 999.99
-        }
-        product_data2 = {
-            'name': 'Samsung',
-            'description': 'Смартфон',
-            'quantity': 15,
-            'price': 799.99
-        }
+        product_data1 = {"name": "iPhone", "description": "Смартфон", "quantity": 10, "price": 999.99}
+        product_data2 = {"name": "Samsung", "description": "Смартфон", "quantity": 15, "price": 799.99}
 
         product1 = Product.new_product(product_data1)
         product2 = Product.new_product(product_data2)
