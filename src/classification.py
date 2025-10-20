@@ -2,13 +2,9 @@ from src.utils import load_transactions
 from typing import List, Dict
 
 class Product:
-    name = str
-    description = str
-    price = float
-    quantity = int
     """Класс описания свойств продукта"""
 
-    def __init__(self, name, description, quantity, price):
+    def __init__(self, name: str, description: str, quantity: int, price: float):
         self.name = name
         self.description = description
         self.quantity = quantity
@@ -39,22 +35,24 @@ class Product:
             price=product_data["price"],
         )
 
+    def __str__(self):
+        return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
+
 
 class Category:
     """Класс категорий продукта"""
 
-    products = list[Dict]
     total_categories = 0
     total_products = 0
 
-    def __init__(self, name, products, description):
+    def __init__(self, name: str, description: str, products: list = None):
         self.name = name
-        self.__products = products  # Сделали приватным
         self.description = description
+        self.__products = products if products is not None else []
 
         # Автоматически обновляем атрибуты класса при создании объекта
         Category.total_categories += 1
-        Category.total_products += len(products)
+        Category.total_products += len(self.__products)
 
     def add_product(self, product):
         """Добавляет продукт в категорию"""
@@ -70,17 +68,58 @@ class Category:
             products_list.append(product_info)
         return products_list
 
+    @property
+    def product_count(self):
+        """Возвращает количество продуктов в категории"""
+        return len(self.__products)
+
+    def __str__(self):
+        return f"Категория: {self.name}, продуктов: {self.product_count}"
+
 
 if __name__ == "__main__":
+    # Загружаем данные из JSON
     result = load_transactions("products.json")
-    products = []
-    for item in result:
-        product = Product(
-            name=item["name"], description=item["description"], quantity=item["quantity"], price=item["price"]
+    categories = []
+    for category_data in result:
+
+        category_products = []
+        for product_data in category_data["products"]:
+            product = Product(
+                name=product_data["name"],
+                description=product_data["description"],
+                quantity=product_data["quantity"],
+                price=product_data["price"]
+            )
+            category_products.append(product)
+
+        # Создаем категорию с объектами Product
+        category = Category(
+            name=category_data["name"],
+            description=category_data["description"],
+            products=category_products
         )
-        products.append(product)
-        print(products)
-        categories = list[Dict]
-        for category in result:
-            product = Category(name=item["name"], description=item["description"], products=item["products"])
-            print(categories)
+        categories.append(category)
+
+    print("=== СОЗДАННЫЕ КАТЕГОРИИ ===")
+    for category in categories:
+        print(f"\n{category}")
+        print(f"Описание: {category.description}")
+        print("Продукты:")
+        for product_info in category.products:
+            print(f"  - {product_info}")
+
+    print(f"\n=== ОБЩАЯ СТАТИСТИКА ===")
+    print(f"Всего категорий: {Category.total_categories}")
+    print(f"Всего продуктов: {Category.total_products}")
+
+    # Тестируем добавление нового продукта
+    print(f"\n=== ТЕСТ ДОБАВЛЕНИЯ ПРОДУКТА ===")
+    if categories:
+        new_product = Product('Новый телевизор', "Тестовый продукт", 50000, 3)
+        categories[0].add_product(new_product)  # Добавляем в первую категорию
+        print(f"После добавления продукта в категорию '{categories[0].name}':")
+        print(f"Количество продуктов: {categories[0].product_count}")
+        print("Обновленный список продуктов:")
+        for product_info in categories[0].products:
+            print(f"  - {product_info}")

@@ -39,7 +39,6 @@ class TestProductPrice:
         # Проверяем сообщение об ошибке
         captured = capsys.readouterr()
         assert "Цена не должна быть нулевая или отрицательная" in captured.out
-
         # Проверяем, что цена не изменилась
         assert product.price == 100.0
 
