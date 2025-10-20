@@ -1,5 +1,5 @@
 from src.utils import load_transactions
-from typing import List, Dict
+
 
 class Product:
     """Класс описания свойств продукта"""
