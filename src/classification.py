@@ -1,5 +1,5 @@
 from src.utils import load_transactions
-
+from typing import Any
 
 class Product:
     """Класс описания свойств продукта"""
@@ -45,7 +45,7 @@ class Category:
     total_categories = 0
     total_products = 0
 
-    def __init__(self, name: str, description: str, products: list = None):
+    def __init__(self, name: str, description: str, products: list[Any]):
         self.name = name
         self.description = description
         self.__products = products if products is not None else []
@@ -78,48 +78,68 @@ class Category:
 
 
 if __name__ == "__main__":
-    # Загружаем данные из JSON
-    result = load_transactions("products.json")
-    categories = []
-    for category_data in result:
+    try:
+        # Загружаем данные из JSON
+        result = load_transactions("products.json")
+        if not result:
+            print("Файл products.json пуст или не найден")
+            # Создаем тестовые данные
+            result = [
+                {
+                    "name": "Тестовая категория",
+                    "description": "Для демонстрации",
+                    "products": [
+                        {
+                            "name": "Тестовый продукт",
+                            "description": "Пример продукта",
+                            "price": 100.0,
+                            "quantity": 5
+                        }
+                    ]
+                }
+            ]
 
-        category_products = []
-        for product_data in category_data["products"]:
-            product = Product(
-                name=product_data["name"],
-                description=product_data["description"],
-                quantity=product_data["quantity"],
-                price=product_data["price"]
+        categories = []
+        for category_data in result:
+            category_products = []
+            for product_data in category_data["products"]:
+                product = Product(
+                    name=product_data["name"],
+                    description=product_data.get("description", ""),
+                    quantity=product_data["quantity"],
+                    price=product_data["price"]
+                )
+                category_products.append(product)
+
+            category = Category(
+                name=category_data["name"],
+                description=category_data.get("description", ""),
+                products=category_products
             )
-            category_products.append(product)
+            categories.append(category)
 
-        # Создаем категорию с объектами Product
-        category = Category(
-            name=category_data["name"],
-            description=category_data["description"],
-            products=category_products
-        )
-        categories.append(category)
 
-    print("=== СОЗДАННЫЕ КАТЕГОРИИ ===")
-    for category in categories:
-        print(f"\n{category}")
-        print(f"Описание: {category.description}")
-        print("Продукты:")
-        for product_info in category.products:
-            print(f"  - {product_info}")
+        print("=== СОЗДАННЫЕ КАТЕГОРИИ ===")
+        for category in categories:
+            print(f"\n{category}")
+            print(f"Описание: {category.description}")
+            print("Продукты:")
+            for product_info in category.products:
+                print(f"  - {product_info}")
 
-    print(f"\n=== ОБЩАЯ СТАТИСТИКА ===")
-    print(f"Всего категорий: {Category.total_categories}")
-    print(f"Всего продуктов: {Category.total_products}")
+        Category.print_statistics()
 
-    # Тестируем добавление нового продукта
-    print(f"\n=== ТЕСТ ДОБАВЛЕНИЯ ПРОДУКТА ===")
-    if categories:
-        new_product = Product('Новый телевизор', "Тестовый продукт", 50000, 3)
-        categories[0].add_product(new_product)  # Добавляем в первую категорию
-        print(f"После добавления продукта в категорию '{categories[0].name}':")
-        print(f"Количество продуктов: {categories[0].product_count}")
-        print("Обновленный список продуктов:")
-        for product_info in categories[0].products:
-            print(f"  - {product_info}")
+
+        print(f"\n=== ТЕСТ ИЗМЕНЕНИЯ ЦЕН ===")
+        if categories and categories[0].product_count > 0:
+            product = categories[0]._Category__products[0]  # Получаем первый продукт
+            print(f"Исходная цена: {product.price}")
+
+            product.price = 150.0  # Валидное изменение
+            print(f"После валидного изменения: {product.price}")
+
+            product.price = -50.0  # Невалидное изменение
+            print(f"После невалидного изменения: {product.price}")  # Должна остаться прежняя
+
+    except Exception as e:
+        print(f"Ошибка: {e}")
