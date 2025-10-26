@@ -73,6 +73,12 @@ class Category:
         """Возвращает количество продуктов в категории"""
         return len(self.__products)
 
+    @classmethod
+    def print_statistics(cls):
+        """Метод для вывода статистики категорий и продуктов"""
+        print(f"Всего категорий: {cls.total_categories}")
+        print(f"Всего продуктов: {cls.total_products}")
+
     def __str__(self):
         return f"Категория: {self.name}, продуктов: {self.product_count}"
 
@@ -129,17 +135,16 @@ if __name__ == "__main__":
 
         Category.print_statistics()
 
-
         print(f"\n=== ТЕСТ ИЗМЕНЕНИЯ ЦЕН ===")
         if categories and categories[0].product_count > 0:
-            product = categories[0]._Category__products[0]  # Получаем первый продукт
+            product = categories[0]._Category__products[0]
             print(f"Исходная цена: {product.price}")
 
             product.price = 150.0  # Валидное изменение
             print(f"После валидного изменения: {product.price}")
 
             product.price = -50.0  # Невалидное изменение
-            print(f"После невалидного изменения: {product.price}")  # Должна остаться прежняя
+            print(f"После невалидного изменения: {product.price}")
 
     except Exception as e:
         print(f"Ошибка: {e}")
