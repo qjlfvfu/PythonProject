@@ -68,6 +68,10 @@ class Category:
             products_list.append(product_info)
         return products_list
 
+    def get_products_objects(self):
+        """Геттер для получения списка объектов продуктов"""
+        return self.__products
+
     @property
     def product_count(self):
         """Возвращает количество продуктов в категории"""
@@ -124,7 +128,6 @@ if __name__ == "__main__":
             )
             categories.append(category)
 
-
         print("=== СОЗДАННЫЕ КАТЕГОРИИ ===")
         for category in categories:
             print(f"\n{category}")
@@ -137,14 +140,17 @@ if __name__ == "__main__":
 
         print(f"\n=== ТЕСТ ИЗМЕНЕНИЯ ЦЕН ===")
         if categories and categories[0].product_count > 0:
-            product = categories[0]._Category__products[0]
-            print(f"Исходная цена: {product.price}")
+            # Используем новый геттер вместо прямого доступа к приватному атрибуту
+            products_objects = categories[0].get_products_objects()
+            if products_objects:
+                product = products_objects[0]  # Получаем первый продукт
+                print(f"Исходная цена: {product.price}")
 
-            product.price = 150.0  # Валидное изменение
-            print(f"После валидного изменения: {product.price}")
+                product.price = 150.0  # Валидное изменение
+                print(f"После валидного изменения: {product.price}")
 
-            product.price = -50.0  # Невалидное изменение
-            print(f"После невалидного изменения: {product.price}")
+                product.price = -50.0  # Невалидное изменение
+                print(f"После невалидного изменения: {product.price}")  # Должна остаться прежняя
 
     except Exception as e:
         print(f"Ошибка: {e}")
