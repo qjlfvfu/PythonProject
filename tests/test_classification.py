@@ -40,7 +40,7 @@ class TestProductFeatures(unittest.TestCase):
 
     def test_product_addition_type_error(self):
         """Тест ошибки типа при сложении"""
-        with self.assertRaises(Exception):  # Изменил на Exception так как у тебя raise без указания типа
+        with self.assertRaises(Exception):
             self.product1 + "не продукт"
 
     def test_product_string_representation(self):
