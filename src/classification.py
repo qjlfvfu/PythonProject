@@ -6,7 +6,7 @@ from src.utils import load_transactions
 class Product:
     """Класс описания свойств продукта"""
 
-    def __init__(self, name: str, description: str, quantity: int, price: float):
+    def __init__(self, name: str, description: str, quantity: float, price: float):
         self.name = name
         self.description = description
         self.quantity = quantity
