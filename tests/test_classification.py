@@ -1,207 +1,316 @@
-import pytest
-from src.classification import Category, Product
+import os
+import sys
+import unittest
+from io import StringIO
+from unittest.mock import patch
+
+from src.classification import Category, Product, Sorting
+
+# Добавляем путь для импорта модулей
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
-# Фикстуры
-@pytest.fixture
-def sample_product():
-    return Product("Колбаса", "Краковская колбаса прямо из под собаки", 25, 1.40)
+class TestProductFeatures(unittest.TestCase):
+    """Тесты для новых возможностей класса Product"""
 
+    def setUp(self):
+        """Подготовка тестовых данных"""
+        self.product1 = Product("Телефон", "Смартфон", 10, 1000.0)
+        self.product2 = Product("Планшет", "Планшет", 5, 2000.0)
+        self.product3 = Product("Ноутбук", "Ноутбук", 3, 5000.0)
 
-@pytest.fixture
-def sample_products():
-    return [
-        Product("Товар 1", "Описание 1", 10, 100.0),
-        Product("Товар 2", "Описание 2", 5, 200.0),
-        Product("Товар 3", "Описание 3", 8, 150.0)
-    ]
+    def test_product_addition(self):
+        """Тест сложения продуктов"""
+        # 10 * 1000 + 5 * 2000 = 10000 + 10000 = 20000
+        result = self.product1 + self.product2
+        self.assertEqual(result, 20000.0)
 
+        # 5 * 2000 + 3 * 5000 = 10000 + 15000 = 25000
+        result = self.product2 + self.product3
+        self.assertEqual(result, 25000.0)
 
-@pytest.fixture
-def sample_category(sample_products):
-    return Category("Мясо", "Грустно но вкусно", sample_products)
+    def test_product_addition_with_different_prices(self):
+        """Тест сложения продуктов с разными ценами"""
+        cheap_product = Product("Дешевый", "Товар", 100, 10.0)
+        expensive_product = Product("Дорогой", "Товар", 2, 1000.0)
 
+        # 100 * 10 + 2 * 1000 = 1000 + 2000 = 3000
+        result = cheap_product + expensive_product
+        self.assertEqual(result, 3000.0)
 
-def test_product_init(sample_product):
-    """Тест инициализации продукта"""
-    assert sample_product.name == "Колбаса"
-    assert sample_product.description == "Краковская колбаса прямо из под собаки"
-    assert sample_product.quantity == 25
-    assert sample_product.price == 1.40
+    def test_product_addition_type_error(self):
+        """Тест ошибки типа при сложении"""
+        with self.assertRaises(Exception):
+            self.product1 + "не продукт"
 
+    def test_product_string_representation(self):
+        """Тест строкового представления продукта"""
+        product = Product("Тест", "Описание", 15, 150.5)
+        expected = "Тест, 150.5 руб. Остаток: 15 шт."
+        self.assertEqual(str(product), expected)
 
-def test_category_init(sample_category):
-    """Тест инициализации категории"""
-    assert sample_category.name == "Мясо"
-    assert sample_category.description == "Грустно но вкусно"
-    assert len(sample_category.products) == 3  # Исправлено: проверяем количество продуктов
+    def test_product_price_validation(self):
+        """Тест валидации цены продукта"""
+        # Исходная цена
+        self.assertEqual(self.product1.price, 1000.0)
 
+        # Установка валидной цены
+        self.product1.price = 1200.0
+        self.assertEqual(self.product1.price, 1200.0)
 
-class TestProductPrice:
-    """Тесты для функциональности приватной цены с геттером и сеттером"""
+        # Попытка установки невалидной цены (должна остаться прежняя)
+        self.product1.price = -100.0
+        self.assertEqual(self.product1.price, 1200.0)
 
-    def test_price_getter(self):
-        """Тест геттера цены"""
-        product = Product("Тестовый товар", "Описание", 10, 100.0)
-        assert product.price == 100.0
+        self.product1.price = 0
+        self.assertEqual(self.product1.price, 1200.0)
 
-    def test_price_setter_valid(self):
-        """Тест сеттера с валидной ценой"""
-        product = Product("Тестовый товар", "Описание", 10, 100.0)
-        product.price = 150.0
-        assert product.price == 150.0
-
-    def test_price_setter_negative(self, capsys):
-        """Тест сеттера с отрицательной ценой"""
-        product = Product("Тестовый товар", "Описание", 10, 100.0)
-        product.price = -50.0
-
-        captured = capsys.readouterr()
-        # Проверяем что цена не изменилась (может не быть сообщения в зависимости от реализации)
-        assert product.price == 100.0
-
-    def test_price_setter_zero(self, capsys):
-        """Тест сеттера с нулевой ценой"""
-        product = Product("Тестовый товар", "Описание", 10, 100.0)
-        product.price = 0
-
-        captured = capsys.readouterr()
-        assert product.price == 100.0  # Цена не должна измениться
-
-    def test_price_private_access(self):
-        """Тест, что приватный атрибут недоступен напрямую"""
-        product = Product("Тестовый товар", "Описание", 10, 100.0)
-
-        # Проверяем, что нельзя получить доступ к приватному атрибуту
-        # (зависит от реализации - может быть _price или __price)
-        with pytest.raises(AttributeError):
-            _ = product.__price
-
-    def test_multiple_price_changes(self):
-        """Тест нескольких изменений цены"""
-        product = Product("Тестовый товар", "Описание", 10, 100.0)
-
-        product.price = 200.0
-        assert product.price == 200.0
-
-        product.price = 300.0
-        assert product.price == 300.0
-
-
-class TestProductClassMethod:
-    """Тесты для класс-метода new_product"""
-
-    def test_new_product_valid_data(self):
-        """Тест создания продукта через класс-метод с валидными данными"""
-        product_data = {
-            "name": "Новый товар",
-            "description": "Описание нового товара",
-            "quantity": 5,
-            "price": 200.0
-        }
+    def test_new_product_classmethod(self):
+        """Тест создания продукта через classmethod"""
+        product_data = {"name": "Новый продукт", "description": "Описание нового", "price": 500.0, "quantity": 8}
 
         product = Product.new_product(product_data)
-
-        assert product.name == "Новый товар"
-        assert product.description == "Описание нового товара"
-        assert product.quantity == 5
-        assert product.price == 200.0
-
-
-class TestCategoryWithPrivateProducts:
-    """Тесты для категории с приватным списком продуктов"""
-
-    def test_private_products_access(self):
-        """Тест, что приватный список продуктов недоступен напрямую"""
-        product = Product("Тестовый товар", "Описание", 10, 100.0)
-        category = Category("Тестовая категория", "Описание", [product])
-
-        # Проверяем, что нельзя получить доступ к приватному атрибуту
-        with pytest.raises(AttributeError):
-            _ = category.__products
-
-    def test_products_property(self):
-        """Тест property для получения информации о продуктах"""
-        product1 = Product("Товар 1", "Описание 1", 10, 100.0)
-        product2 = Product("Товар 2", "Описание 2", 5, 200.0)
-
-        category = Category("Тестовая категория", "Описание", [product1, product2])
-
-        products_info = category.products
-
-        assert len(products_info) == 2
-        assert "Товар 1, 100.0 руб. Остаток: 10 шт." in products_info
-        assert "Товар 2, 200.0 руб. Остаток: 5 шт." in products_info
-
-    def test_add_product_method(self, sample_category):
-        """Тест метода add_product"""
-        initial_count = len(sample_category.products)
-        new_product = Product("Новый товар", "Описание", 3, 50.0)
-
-        sample_category.add_product(new_product)
-
-        assert len(sample_category.products) == initial_count + 1
+        self.assertEqual(product.name, "Новый продукт")
+        self.assertEqual(product.description, "Описание нового")
+        self.assertEqual(product.price, 500.0)
+        self.assertEqual(product.quantity, 8)
 
 
-class TestCategoryStatistics:
-    """Тесты для статистики категорий"""
+class TestCategoryFeatures(unittest.TestCase):
+    """Тесты для новых возможностей класса Category"""
 
-    def test_total_categories_count(self):
-        """Тест счетчика категорий"""
-        initial_count = Category.total_categories
+    def setUp(self):
+        """Подготовка тестовых данных"""
+        self.product1 = Product("Товар1", "Описание1", 10, 100.0)
+        self.product2 = Product("Товар2", "Описание2", 5, 200.0)
+        self.product3 = Product("Товар3", "Описание3", 3, 300.0)
 
-        category1 = Category("Категория 1", "Описание 1", [])
-        category2 = Category("Категория 2", "Описание 2", [])
+        self.category = Category("Тестовая категория", "Описание категории", [self.product1, self.product2])
 
-        assert Category.total_categories == initial_count + 2
+    def test_category_string_representation(self):
+        """Тест строкового представления категории"""
+        # 10 + 5 = 15 товаров
+        expected = "Тестовая категория, количество продуктов: 15 шт."
+        self.assertEqual(str(self.category), expected)
 
-    def test_total_products_count(self):
-        """Тест счетчика продуктов"""
-        initial_count = Category.total_products
+    def test_category_total_quantity(self):
+        """Тест подсчета общего количества товаров в категории"""
+        self.assertEqual(self.category.total_quantity, 15)  # 10 + 5
 
-        product1 = Product("Товар 1", "Описание", 5, 100.0)
-        product2 = Product("Товар 2", "Описание", 3, 200.0)
+        # Добавляем еще один товар
+        self.category.add_product(self.product3)
+        self.assertEqual(self.category.total_quantity, 18)  # 10 + 5 + 3
 
-        category = Category("Категория", "Описание", [product1, product2])
+    def test_category_total_value(self):
+        """Тест подсчета общей стоимости товаров в категории"""
+        # (10*100) + (5*200) = 1000 + 1000 = 2000
+        self.assertEqual(self.category.total_value, 2000.0)
 
-        assert Category.total_products == initial_count + 2
+        # Добавляем еще один товар
+        self.category.add_product(self.product3)
+        # 2000 + (3*300) = 2000 + 900 = 2900
+        self.assertEqual(self.category.total_value, 2900.0)
+
+    def test_category_products_property(self):
+        """Тест свойства products (оптимизированная версия)"""
+        products_list = self.category.products
+        self.assertEqual(len(products_list), 2)
+
+        # Проверяем формат строк
+        self.assertIn("Товар1, 100.0 руб. Остаток: 10 шт.", products_list)
+        self.assertIn("Товар2, 200.0 руб. Остаток: 5 шт.", products_list)
+
+    def test_category_statistics(self):
+        """Тест статистики категорий"""
+        # Сбрасываем статистику для чистого теста
+        Category.category_count = 0
+        Category.total_products = 0
+
+        category1 = Category("Кат1", "Описание", [self.product1])
+        category2 = Category("Кат2", "Описание", [self.product2, self.product3])
+
+        self.assertEqual(Category.category_count, 2)
+        self.assertEqual(Category.total_products, 3)
+
+    def test_get_products_objects(self):
+        """Тест получения объектов продуктов"""
+        products_objects = self.category.get_products_objects()
+        self.assertEqual(len(products_objects), 2)
+        self.assertIsInstance(products_objects[0], Product)
+        self.assertIsInstance(products_objects[1], Product)
+
+    def test_product_count_property(self):
+        """Тест свойства product_count"""
+        self.assertEqual(self.category.product_count, 2)
+
+        self.category.add_product(self.product3)
+        self.assertEqual(self.category.product_count, 3)
 
 
-# Интеграционные тесты
-class TestIntegration:
+class TestSortingFeatures(unittest.TestCase):
+    """Тесты для класса Sorting"""
+
+    def setUp(self):
+        """Подготовка тестовых данных"""
+        self.product1 = Product("iPhone", "Смартфон", 10, 1000.0)
+        self.product2 = Product("Samsung", "Смартфон", 5, 800.0)
+        self.product3 = Product("MacBook", "Ноутбук", 3, 2000.0)
+        self.product4 = Product("ThinkPad", "Ноутбук", 7, 1500.0)
+
+        self.category_phones = Category("Смартфоны", "Мобильные телефоны", [self.product1, self.product2])
+
+        self.category_laptops = Category("Ноутбуки", "Портативные компьютеры", [self.product3, self.product4])
+
+        self.all_categories = [self.category_phones, self.category_laptops]
+
+    @patch("builtins.input", return_value="Смартфоны")
+    def test_sorting_initialization(self, mock_input):
+        """Тест инициализации Sorting"""
+        sorter = Sorting(self.all_categories)
+
+        self.assertEqual(sorter.need_find, "Смартфоны")
+        self.assertEqual(len(sorter.found_products), 2)
+        self.assertEqual(sorter.found_products[0].name, "iPhone")
+        self.assertEqual(sorter.found_products[1].name, "Samsung")
+
+    @patch("builtins.input", return_value="Смартфоны")
+    def test_sorting_iterator(self, mock_input):
+        """Тест итератора Sorting"""
+        sorter = Sorting(self.all_categories)
+
+        # Тестируем итерацию
+        products = list(sorter)
+        self.assertEqual(len(products), 2)
+        self.assertEqual(products[0].name, "iPhone")
+        self.assertEqual(products[1].name, "Samsung")
+
+        # Тестируем повторную итерацию (должен сброситься индекс)
+        sorter.__iter__()
+        products_again = list(sorter)
+        self.assertEqual(len(products_again), 2)
+
+    @patch("builtins.input", return_value="Несуществующая")
+    def test_sorting_category_not_found(self, mock_input):
+        """Тест поиска несуществующей категории"""
+        sorter = Sorting(self.all_categories)
+
+        self.assertEqual(sorter.need_find, "Несуществующая")
+        self.assertEqual(len(sorter.found_products), 0)
+        self.assertEqual(sorter.found_products, [])
+
+    @patch("builtins.input", return_value="смартфоны")  # нижний регистр
+    def test_sorting_case_insensitive(self, mock_input):
+        """Тест регистронезависимого поиска"""
+        sorter = Sorting(self.all_categories)
+
+        self.assertEqual(len(sorter.found_products), 2)
+        self.assertEqual(sorter.found_products[0].name, "iPhone")
+
+    @patch("builtins.input", return_value="Смартфоны")
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_print_sorted_products_found(self, mock_stdout, mock_input):
+        """Тест вывода найденных продуктов"""
+        sorter = Sorting(self.all_categories)
+        sorter.print_sorted_products()
+
+        output = mock_stdout.getvalue()
+        self.assertIn("ПРОДУКТЫ В КАТЕГОРИИ 'Смартфоны'", output)
+        self.assertIn("iPhone", output)
+        self.assertIn("Samsung", output)
+
+    @patch("builtins.input", return_value="Несуществующая")
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_print_sorted_products_not_found(self, mock_stdout, mock_input):
+        """Тест вывода при ненайденной категории"""
+        sorter = Sorting(self.all_categories)
+        sorter.print_sorted_products()
+
+        output = mock_stdout.getvalue()
+        self.assertIn("Категория 'Несуществующая' не найдена или пуста", output)
+
+
+class TestIntegrationFeatures(unittest.TestCase):
     """Интеграционные тесты"""
 
-    def test_full_workflow(self):
-        """Тест полного рабочего процесса"""
-        # Создаем продукты через класс-метод
-        product_data1 = {
-            "name": "iPhone",
-            "description": "Смартфон",
-            "quantity": 10,
-            "price": 999.99
-        }
-        product_data2 = {
-            "name": "Samsung",
-            "description": "Смартфон",
-            "quantity": 15,
-            "price": 799.99
-        }
+    def test_product_addition_in_category(self):
+        """Тест сложения продуктов внутри категории"""
+        product_a = Product("A", "Товар A", 10, 100.0)
+        product_b = Product("B", "Товар B", 2, 200.0)
 
-        product1 = Product.new_product(product_data1)
-        product2 = Product.new_product(product_data2)
+        category = Category("Тест", "Описание", [product_a, product_b])
 
-        # Создаем категорию (правильный порядок параметров)
-        category = Category("Смартфоны", "Мобильные телефоны", [product1])
+        # Сложение продуктов из категории
+        total_value = product_a + product_b
+        self.assertEqual(total_value, 1400.0)  # 10*100 + 2*200 = 1400
 
-        # Добавляем второй продукт
-        category.add_product(product2)
+        # Проверяем, что total_value категории совпадает
+        self.assertEqual(category.total_value, 1400.0)
 
-        # Меняем цену на валидную
-        product1.price = 899.99
-        assert product1.price == 899.99
+    def test_complex_scenario(self):
+        """Тест сложного сценария со всеми функциями"""
+        # Создаем продукты
+        phone1 = Product("Phone1", "Смартфон", 5, 500.0)
+        phone2 = Product("Phone2", "Смартфон", 3, 700.0)
+        laptop1 = Product("Laptop1", "Ноутбук", 2, 1000.0)
+        laptop2 = Product("Laptop2", "Ноутбук", 1, 1500.0)
 
-        # Проверяем вывод продуктов
-        products_info = category.products
-        assert len(products_info) == 2
-        assert "iPhone, 899.99 руб. Остаток: 10 шт." in products_info[0]
-        assert "Samsung, 799.99 руб. Остаток: 15 шт." in products_info[1]
+        # Создаем категории
+        phones_category = Category("Телефоны", "Мобильные", [phone1, phone2])
+        laptops_category = Category("Ноутбуки", "Компьютеры", [laptop1, laptop2])
+
+        categories = [phones_category, laptops_category]
+
+        # Тестируем сложение
+        phone_total = phone1 + phone2  # 5*500 + 3*700 = 2500 + 2100 = 4600
+        laptop_total = laptop1 + laptop2  # 2*1000 + 1*1500 = 2000 + 1500 = 3500
+
+        self.assertEqual(phone_total, 4600.0)
+        self.assertEqual(laptop_total, 3500.0)
+
+        # Тестируем строковые представления
+        self.assertEqual(str(phones_category), "Телефоны, количество продуктов: 8 шт.")
+        self.assertEqual(str(laptops_category), "Ноутбуки, количество продуктов: 3 шт.")
+
+
+class TestEdgeCases(unittest.TestCase):
+    """Тесты граничных случаев"""
+
+    def test_empty_category(self):
+        """Тест пустой категории"""
+        empty_category = Category("Пустая", "Описание", [])
+        self.assertEqual(str(empty_category), "Пустая, количество продуктов: 0 шт.")
+        self.assertEqual(empty_category.total_value, 0.0)
+        self.assertEqual(empty_category.products, [])
+        self.assertEqual(empty_category.get_products_objects(), [])
+
+    def test_single_product_category(self):
+        """Тест категории с одним продуктом"""
+        product = Product("Один", "Товар", 1, 100.0)
+        category = Category("Одна", "Описание", [product])
+
+        self.assertEqual(str(category), "Одна, количество продуктов: 1 шт.")
+        self.assertEqual(category.total_value, 100.0)
+
+    def test_product_with_zero_quantity(self):
+        """Тест продукта с нулевым количеством"""
+        zero_product = Product("Ноль", "Товар", 0, 100.0)
+        normal_product = Product("Норма", "Товар", 5, 50.0)
+
+        # Сложение с нулевым количеством
+        result = zero_product + normal_product  # 0*100 + 5*50 = 0 + 250 = 250
+        self.assertEqual(result, 250.0)
+
+    def test_product_with_negative_price_attempt(self):
+        """Тест попытки установки отрицательной цены"""
+        product = Product("Тест", "Товар", 10, 100.0)
+
+        # Попытка установить отрицательную цену
+        product.price = -50.0
+
+        # Цена должна остаться прежней
+        self.assertEqual(product.price, 100.0)
+
+
+if __name__ == "__main__":
+    # Запуск тестов
+    unittest.main(verbosity=2)

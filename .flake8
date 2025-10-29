@@ -1,5 +1,5 @@
 [flake8]
 jobs = 1
 max-line-length = 119
-ignore = E203, W503, F811
+ignore = E203, W503, F811,  F841
 exclude = .venv, __pycache__, build, dist
