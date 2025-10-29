@@ -4,10 +4,10 @@ import unittest
 from io import StringIO
 from unittest.mock import patch
 
+from src.classification import Category, Product, Sorting
+
 # Добавляем путь для импорта модулей
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
-
-from src.classification import Category, Product, Sorting
 
 
 class TestProductFeatures(unittest.TestCase):
