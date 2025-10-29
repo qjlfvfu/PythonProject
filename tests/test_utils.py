@@ -1,22 +1,23 @@
-import unittest
-from unittest.mock import patch, mock_open
 import json
-import sys
 import os
-
-# Добавляем путь для импорта модулей
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+import sys
+import unittest
+from unittest.mock import mock_open, patch
 
 from src.utils import load_transactions
+
+# Добавляем путь для импорта модулей
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
 class TestLoadTransactions(unittest.TestCase):
     """Тесты для функции load_transactions"""
+
     def test_load_valid_json_list(self):
         """Тест загрузки валидного JSON списка"""
         test_data = [
             {"name": "Категория1", "products": [{"name": "Товар1", "price": 100}]},
-            {"name": "Категория2", "products": [{"name": "Товар2", "price": 200}]}
+            {"name": "Категория2", "products": [{"name": "Товар2", "price": 200}]},
         ]
 
         mock_json = json.dumps(test_data)
@@ -97,7 +98,7 @@ class TestLoadTransactions(unittest.TestCase):
         test_data = [{"name": "Тест", "products": []}]
         mock_json = json.dumps(test_data, ensure_ascii=False)
 
-        with patch("builtins.open", mock_open(read_data=mock_json.encode('utf-8'))):
+        with patch("builtins.open", mock_open(read_data=mock_json.encode("utf-8"))):
             # Передаем байты чтобы проверить кодировку
             file_mock = mock_open(read_data=mock_json)
             file_mock.return_value.__enter__.return_value.read.return_value = mock_json
@@ -113,32 +114,17 @@ class TestLoadTransactions(unittest.TestCase):
                 "name": "Электроника",
                 "description": "Технические устройства",
                 "products": [
-                    {
-                        "name": "Смартфон",
-                        "description": "Мобильный телефон",
-                        "price": 500.0,
-                        "quantity": 10
-                    },
-                    {
-                        "name": "Ноутбук",
-                        "description": "Портативный компьютер",
-                        "price": 1000.0,
-                        "quantity": 5
-                    }
-                ]
+                    {"name": "Смартфон", "description": "Мобильный телефон", "price": 500.0, "quantity": 10},
+                    {"name": "Ноутбук", "description": "Портативный компьютер", "price": 1000.0, "quantity": 5},
+                ],
             },
             {
                 "name": "Книги",
                 "description": "Печатные издания",
                 "products": [
-                    {
-                        "name": "Роман",
-                        "description": "Художественная литература",
-                        "price": 20.0,
-                        "quantity": 50
-                    }
-                ]
-            }
+                    {"name": "Роман", "description": "Художественная литература", "price": 20.0, "quantity": 50}
+                ],
+            },
         ]
 
         mock_json = json.dumps(test_data, ensure_ascii=False)
@@ -182,12 +168,10 @@ class TestLoadTransactionsIntegration(unittest.TestCase):
         """Тест с созданием реального временного файла"""
         import tempfile
 
-        test_data = [
-            {"name": "Временная категория", "products": [{"name": "Временный товар", "price": 100}]}
-        ]
+        test_data = [{"name": "Временная категория", "products": [{"name": "Временный товар", "price": 100}]}]
 
         # Создаем временный файл с явным указанием кодировки и режима
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', encoding='utf-8', delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", encoding="utf-8", delete=False) as temp_file:
             json.dump(test_data, temp_file, ensure_ascii=False)
             temp_path = temp_file.name
 
@@ -209,9 +193,7 @@ class TestLoadTransactionsIntegration(unittest.TestCase):
         """Альтернативный тест с реальным файлом"""
         import tempfile
 
-        test_data = [
-            {"name": "Тест категория", "products": [{"name": "Тест товар", "price": 50}]}
-        ]
+        test_data = [{"name": "Тест категория", "products": [{"name": "Тест товар", "price": 50}]}]
 
         # Создаем файл вручную
         temp_dir = tempfile.gettempdir()
@@ -219,7 +201,7 @@ class TestLoadTransactionsIntegration(unittest.TestCase):
 
         try:
             # Записываем данные в файл
-            with open(temp_path, 'w', encoding='utf-8') as f:
+            with open(temp_path, "w", encoding="utf-8") as f:
                 json.dump(test_data, f, ensure_ascii=False)
 
             # Читаем через нашу функцию
@@ -242,7 +224,7 @@ class TestLoadTransactionsIntegration(unittest.TestCase):
         temp_path = os.path.join(temp_dir, "empty_test.json")
 
         try:
-            with open(temp_path, 'w', encoding='utf-8') as f:
+            with open(temp_path, "w", encoding="utf-8") as f:
                 f.write("")
 
             with patch("builtins.print") as mock_print:
@@ -265,7 +247,7 @@ class TestLoadTransactionsIntegration(unittest.TestCase):
         temp_path = os.path.join(temp_dir, "malformed_test.json")
 
         try:
-            with open(temp_path, 'w', encoding='utf-8') as f:
+            with open(temp_path, "w", encoding="utf-8") as f:
                 f.write("{invalid json")
 
             with patch("builtins.print") as mock_print:
@@ -313,7 +295,7 @@ class TestLoadTransactionsEdgeCases(unittest.TestCase):
         """Тест Unicode символов"""
         test_data = [
             {"name": "Товар с русскими буквами", "description": "Описание с émojis 🚀"},
-            {"name": "商品", "description": "中文描述"}
+            {"name": "商品", "description": "中文描述"},
         ]
 
         with patch("builtins.open", mock_open(read_data=json.dumps(test_data, ensure_ascii=False))):
@@ -325,9 +307,7 @@ class TestLoadTransactionsEdgeCases(unittest.TestCase):
 
     def test_special_json_values(self):
         """Тест специальных JSON значений"""
-        test_data = [
-            {"null_value": None, "bool_value": True, "number": 123.45, "nested": {"key": "value"}}
-        ]
+        test_data = [{"null_value": None, "bool_value": True, "number": 123.45, "nested": {"key": "value"}}]
 
         with patch("builtins.open", mock_open(read_data=json.dumps(test_data))):
             result = load_transactions("special_values.json")
@@ -344,15 +324,9 @@ class TestLoadTransactionsEdgeCases(unittest.TestCase):
             self.assertEqual(result, [])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Запуск тестов с покрытием
     import pytest
 
     print("=== ТЕСТИРОВАНИЕ UTILS ===")
-    pytest.main([
-        __file__,
-        '-v',
-        '--cov=src.utils',
-        '--cov-report=term-missing',
-        '--cov-report=html'
-    ])
+    pytest.main([__file__, "-v", "--cov=src.utils", "--cov-report=term-missing", "--cov-report=html"])
