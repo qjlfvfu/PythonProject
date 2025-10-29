@@ -253,7 +253,8 @@ PythonProject/
 │ └── utils/ # Утилиты для работы с файлами
 ├── tests/ # Тесты
 │ ├── confest.py # Фикстуры проекта
-│ └── test_classification.py
+│ ├── test_classification.py
+│ └──test_utils.py
 ├── data/ # Данные (JSON файлы)
 │ └── products.json
 ├── requirements.txt # Зависимости проекта
