@@ -49,7 +49,7 @@ class Product:
 class Category:
     """Класс категорий продукта"""
 
-    total_categories = 0
+    category_count = 0
     total_products = 0
 
     def __init__(self, name: str, description: str, products: list[Any]):
@@ -58,7 +58,7 @@ class Category:
         self.__products = products if products is not None else []
 
         # Автоматически обновляем атрибуты класса при создании объекта
-        Category.total_categories += 1
+        Category.category_count += 1
         Category.total_products += len(self.__products)
 
     def add_product(self, product):
@@ -88,7 +88,7 @@ class Category:
     @classmethod
     def print_statistics(cls):
         """Метод для вывода статистики категорий и продуктов"""
-        print(f"Всего категорий: {cls.total_categories}")
+        print(f"Всего категорий: {cls.category_count}")
         print(f"Всего продуктов: {cls.total_products}")
 
     def __str__(self):

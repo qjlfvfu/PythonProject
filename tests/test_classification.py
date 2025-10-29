@@ -123,13 +123,13 @@ class TestCategoryFeatures(unittest.TestCase):
     def test_category_statistics(self):
         """Тест статистики категорий"""
         # Сбрасываем статистику для чистого теста
-        Category.total_categories = 0
+        Category.category_count = 0
         Category.total_products = 0
 
         category1 = Category("Кат1", "Описание", [self.product1])
         category2 = Category("Кат2", "Описание", [self.product2, self.product3])
 
-        self.assertEqual(Category.total_categories, 2)
+        self.assertEqual(Category.category_count, 2)
         self.assertEqual(Category.total_products, 3)
 
     def test_get_products_objects(self):
