@@ -10,7 +10,7 @@ class Product:
         self.name = name
         self.description = description
         self.quantity = quantity
-        self.__price = price  # Приватный атрибут цены
+        self.__price = price
 
     @property
     def price(self):
@@ -100,6 +100,7 @@ class Category:
         return sum(product.price * product.quantity for product in self.__products)
 
 
+
 class Sorting:
     """Класс сортировки продуктов по выбранной категории"""
 
@@ -136,6 +137,27 @@ class Sorting:
         print(f"\n=== ПРОДУКТЫ В КАТЕГОРИИ '{self.need_find}' ===")
         for product in self.found_products:
             print(f"- {product}")
+
+
+class Smartphone(Product):
+    """Дочерний Класс для смартфонов"""
+
+    def __init__(self, name, description, quantity, price, efficiency: float, model: str,memory: int, color: str ):
+        Product.__init__(name, description, quantity, price)
+        self.efficiency = efficiency
+        self.model = model
+        self.memory = memory
+        self.color = color
+
+
+class LawnGrass(Product):
+    """Дочерний Класс для газонной травы"""
+
+    def __init__(self, name, description, quantity, price, country: str, germination_period: str, color: str):
+        Product.__init__(name, description, quantity, price)
+        self.country = country
+        self.germination_period = germination_period
+        self.color = color
 
 
 if __name__ == "__main__":
