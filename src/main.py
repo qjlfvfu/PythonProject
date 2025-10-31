@@ -1,4 +1,4 @@
-from src.classification import Category, LawnGrass, Product, Smartphone
+from src.classification import Category, LawnGrass, Smartphone
 
 if __name__ == "__main__":
     smartphone1 = Smartphone(

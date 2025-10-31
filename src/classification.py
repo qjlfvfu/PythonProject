@@ -41,12 +41,15 @@ class Product:
         return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
 
     def __add__(self, other):
-        """Метод определяющий пренадлежность к другой категории
+        """Метод определяющий принадлежность к другой категории
         и запрещающий добавлять предметы других категорий"""
+        # Проверяем принадлежность к классу Product
         if not isinstance(other, Product):
             raise TypeError("Можно складывать только объекты класса Product!")
-        if type(self) != type(other):
+        # Проверяем принадлежность к дочерним классам от Product
+        if type(self) is not type(other):
             raise TypeError("Можно складывать только товары одинаковых классов продуктов!")
+
         return (self.price * self.quantity) + (other.price * other.quantity)
 
 
@@ -104,7 +107,6 @@ class Category:
         return sum(product.price * product.quantity for product in self.__products)
 
 
-
 class Sorting:
     """Класс сортировки продуктов по выбранной категории"""
 
@@ -146,7 +148,7 @@ class Sorting:
 class Smartphone(Product):
     """Дочерний Класс для смартфонов"""
 
-    def __init__(self, name, description, quantity, price, efficiency: float, model: str,memory: int, color: str ):
+    def __init__(self, name, description, quantity, price, efficiency: float, model: str, memory: int, color: str):
         Product.__init__(name, description, quantity, price)
         self.efficiency = efficiency
         self.model = model
