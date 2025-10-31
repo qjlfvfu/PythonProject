@@ -41,8 +41,12 @@ class Product:
         return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
 
     def __add__(self, other):
+        """Метод определяющий пренадлежность к другой категории
+        и запрещающий добавлять предметы других категорий"""
         if not isinstance(other, Product):
             raise TypeError("Можно складывать только объекты класса Product!")
+        if type(self) != type(other):
+            raise TypeError("Можно складывать только товары одинаковых классов продуктов!")
         return (self.price * self.quantity) + (other.price * other.quantity)
 
 
