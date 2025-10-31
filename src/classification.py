@@ -149,7 +149,8 @@ class Smartphone(Product):
     """Дочерний Класс для смартфонов"""
 
     def __init__(self, name, description, quantity, price, efficiency: float, model: str, memory: int, color: str):
-        Product.__init__(name, description, quantity, price)
+        # Добавлен метод super
+        super().__init__(name, description, quantity, price)
         self.efficiency = efficiency
         self.model = model
         self.memory = memory
@@ -160,7 +161,8 @@ class LawnGrass(Product):
     """Дочерний Класс для газонной травы"""
 
     def __init__(self, name, description, quantity, price, country: str, germination_period: str, color: str):
-        Product.__init__(name, description, quantity, price)
+        # Добавлен метод super
+        super().__init__(name, description, quantity, price)
         self.country = country
         self.germination_period = germination_period
         self.color = color
