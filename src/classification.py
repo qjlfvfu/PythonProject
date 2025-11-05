@@ -149,7 +149,6 @@ class Smartphone(Product):
     """Дочерний Класс для смартфонов"""
 
     def __init__(self, name, description, quantity, price, efficiency: float, model: str, memory: int, color: str):
-        # Добавлен метод super
         super().__init__(name, description, quantity, price)
         self.efficiency = efficiency
         self.model = model
