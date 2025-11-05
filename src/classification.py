@@ -1,9 +1,41 @@
 from typing import Any
-
+from abc import ABC,abstractmethod
 from src.utils import load_transactions
 
 
-class Product:
+class MixinInfo:
+    """Миксин для логирования создания объектов"""
+
+    def __init__(self, *args, **kwargs):
+        """Инициализация с логированием создания объекта"""
+        super().__init__(*args, **kwargs)
+        print(f"{self.__class__.__name__}('{getattr(self, 'name', '')}', '{getattr(self, 'description', '')}',"
+              f" {getattr(self, 'price', 0)}, {getattr(self, 'quantity', 0)})")
+
+
+class BaseProduct(ABC,MixinInfo):
+    """Абстрактный базовый класс для всех продуктов"""
+
+    @abstractmethod
+    def __init__(self, name: str, description: str, quantity: float, price: float):
+        self.name = name
+        self.description = description
+        self.quantity = quantity
+        super().__init__()
+        
+
+    @abstractmethod
+    def __add__(self, other):
+        """Абстрактный метод сложения продуктов"""
+        pass
+
+    @abstractmethod
+    def __str__(self):
+        """Абстрактный метод строкового представления"""
+        pass
+
+
+class Product(BaseProduct):
     """Класс описания свойств продукта"""
 
     def __init__(self, name: str, description: str, quantity: float, price: float):
@@ -11,6 +43,7 @@ class Product:
         self.description = description
         self.quantity = quantity
         self.__price = price
+        super().__init__(name, description, quantity, price)
 
     @property
     def price(self):
@@ -43,17 +76,31 @@ class Product:
     def __add__(self, other):
         """Метод определяющий принадлежность к другой категории
         и запрещающий добавлять предметы других категорий"""
-        # Проверяем принадлежность к классу Product
         if not isinstance(other, Product):
             raise TypeError("Можно складывать только объекты класса Product!")
-        # Проверяем принадлежность к дочерним классам от Product
         if type(self) is not type(other):
             raise TypeError("Можно складывать только товары одинаковых классов продуктов!")
 
         return (self.price * self.quantity) + (other.price * other.quantity)
 
 
-class Category:
+class BaseCounter(ABC):
+
+    @abstractmethod
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def __str__(self):
+        pass
+
+    @property
+    @abstractmethod
+    def total_quantity(self)->int:
+        pass
+
+
+class Category(BaseCounter):
     """Класс категорий продукта"""
 
     category_count = 0
@@ -63,6 +110,8 @@ class Category:
         self.name = name
         self.description = description
         self.__products = products if products is not None else []
+
+        super().__init__()
 
         # Автоматически обновляем атрибуты класса при создании объекта
         Category.category_count += 1
@@ -105,6 +154,25 @@ class Category:
     def total_value(self):
         """Возвращает общую стоимость всех товаров в категории"""
         return sum(product.price * product.quantity for product in self.__products)
+
+
+class Order(BaseCounter):
+    """Класс для работы с заказами"""
+
+    def __init__(self, product, quantity):
+        self.product = product
+        self.quantity = quantity
+        self.total_value = product.price * quantity
+        self.name = f"Заказ {product.name}"
+
+        super().__init__()
+
+    @property
+    def total_quantity(self):
+        return self.quantity
+
+    def __str__(self):
+        return f"Заказ: {self.product.name}, Количество: {self.quantity}, Итого: {self.total_value} руб."
 
 
 class Sorting:
@@ -155,16 +223,25 @@ class Smartphone(Product):
         self.memory = memory
         self.color = color
 
+    def __str__(self):
+        return f"{self.name} ({self.model}), {self.price} руб. Остаток: {self.quantity} шт. Память: {self.memory}GB"
+
+
 
 class LawnGrass(Product):
     """Дочерний Класс для газонной травы"""
 
     def __init__(self, name, description, quantity, price, country: str, germination_period: str, color: str):
-        # Добавлен метод super
         super().__init__(name, description, quantity, price)
         self.country = country
         self.germination_period = germination_period
         self.color = color
+
+    def __str__(self):
+        return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт. Страна: {self.country}"
+
+
+
 
 
 if __name__ == "__main__":
