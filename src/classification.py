@@ -117,9 +117,11 @@ class Category(BaseCounter):
         Category.category_count += 1
         Category.total_products += len(self.__products)
 
-    def add_product(self, product):
+    def add_product(self, product,other):
         """Добавляет продукт в категорию"""
         self.__products.append(product)
+        if not isinstance(other, Category):
+            raise TypeError("Можно складывать только объекты одинаковой категории!")
         Category.total_products += 1
 
     @property
