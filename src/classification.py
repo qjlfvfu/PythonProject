@@ -117,11 +117,11 @@ class Category(BaseCounter):
         Category.category_count += 1
         Category.total_products += len(self.__products)
 
-    def add_product(self, product,other):
+    def add_product(self, product):
         """Добавляет продукт в категорию"""
+        if not isinstance(product, Product):
+            raise TypeError("Можно добавлять только объекты класса Product")
         self.__products.append(product)
-        if not isinstance(other, Category):
-            raise TypeError("Можно складывать только объекты одинаковой категории")
         Category.total_products += 1
 
     @property
@@ -159,14 +159,11 @@ class Category(BaseCounter):
 
 
 class Order(BaseCounter):
-    """Класс для работы с заказами"""
-
     def __init__(self, product, quantity):
         self.product = product
         self.quantity = quantity
         self.total_value = product.price * quantity
         self.name = f"Заказ {product.name}"
-
         super().__init__()
 
     @property
@@ -174,7 +171,7 @@ class Order(BaseCounter):
         return self.quantity
 
     def __str__(self):
-        return f"Заказ: {self.product.name}, Количество: {self.quantity}, Итого: {self.total_value} руб."
+        return f"Заказ: {self.product.name}, ..."
 
 
 class Sorting:
