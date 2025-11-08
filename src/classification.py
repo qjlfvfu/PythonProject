@@ -166,7 +166,6 @@ class Category(BaseCounter):
         """Возвращает общее количество товаров на складе в этой категории"""
         return sum(product.quantity for product in self.__products)
 
-    @property
     def middle_price(self) -> float:
         """
         Возвращает среднюю цену всех товаров в категории.
