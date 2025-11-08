@@ -39,6 +39,9 @@ class Product(BaseProduct):
     """Класс описания свойств продукта"""
 
     def __init__(self, name: str, description: str, quantity: float, price: float):
+        # Может добавить класс исключение и сюда?
+        if quantity <= 0:
+            raise ValueError("Товар с нулевым количеством не может быть добавлен")
         self.name = name
         self.description = description
         self.quantity = quantity
@@ -63,6 +66,8 @@ class Product(BaseProduct):
         """
         Класс-метод для создания объекта Product из словаря
         """
+        if product_data["quantity"] <= 0:
+            raise ValueError("Товар с нулевым количеством не может быть добавлен")
         return cls(
             name=product_data["name"],
             description=product_data["description"],
@@ -110,7 +115,6 @@ class Category(BaseCounter):
         self.name = name
         self.description = description
         self.__products = products if products is not None else []
-
         super().__init__()
 
         # Автоматически обновляем атрибуты класса при создании объекта
@@ -118,9 +122,28 @@ class Category(BaseCounter):
         Category.total_products += len(self.__products)
 
     def add_product(self, product):
-        """Добавляет продукт в категорию"""
-        if not isinstance(product, Product):
-            raise TypeError("Можно добавлять только объекты класса Product")
+        """Добавляет продукт в категорию с обработкой исключений"""
+        try:
+            print(f"\n🔄 Начало обработки добавления товара '{product.name}' в категорию '{self.name}'")
+
+            # Проверяем тип
+            if not isinstance(product, Product):
+                raise TypeError("Можно добавлять только объекты класса Product")
+
+            if product.quantity <= 0:
+                raise ZeroQuantityError(product.name, "добавления в категорию")
+
+            self.__products.append(product)
+            Category.total_products += 1
+
+            print(f"✅ Товар '{product.name}' успешно добавлен в категорию '{self.name}'")
+
+        except (TypeError, ZeroQuantityError) as e:
+            print(f"❌ Ошибка при добавлении товара: {e}")
+            raise  # Пробрасываем исключение дальше
+        finally:
+            print(f"🏁 Обработка добавления товара '{product.name}' завершена")
+
         self.__products.append(product)
         Category.total_products += 1
 
@@ -143,6 +166,23 @@ class Category(BaseCounter):
         """Возвращает общее количество товаров на складе в этой категории"""
         return sum(product.quantity for product in self.__products)
 
+    @property
+    def middle_price(self) -> float:
+        """
+        Возвращает среднюю цену всех товаров в категории.
+        Если в категории нет товаров, возвращает 0.
+        """
+        try:
+            if not self.__products:
+                return 0.0
+
+            total_price = sum(product.price for product in self.__products)
+            average_price = total_price / len(self.__products)
+            return round(average_price, 2)
+
+        except ZeroDivisionError:
+            return 0.0
+
     @classmethod
     def print_statistics(cls):
         """Метод для вывода статистики категорий и продуктов"""
@@ -159,11 +199,29 @@ class Category(BaseCounter):
 
 
 class Order(BaseCounter):
+    """Класс для работы с заказами"""
+
     def __init__(self, product, quantity):
-        self.product = product
-        self.quantity = quantity
-        self.total_value = product.price * quantity
-        self.name = f"Заказ {product.name}"
+        try:
+            print(f"\n🔄 Начало обработки создания заказа для товара '{product.name}'")
+
+            # Проверяем количество
+            if quantity <= 0:
+                raise ZeroQuantityError(product.name, "создания заказа")
+
+            self.product = product
+            self.quantity = quantity
+            self.total_value = product.price * quantity
+            self.name = f"Заказ {product.name}"
+
+            print(f"✅ Заказ для товара '{product.name}' успешно создан")
+
+        except ZeroQuantityError as e:
+            print(f"❌ Ошибка при создании заказа: {e}")
+            raise
+        finally:
+            print(f"🏁 Обработка создания заказа для товара '{product.name}' завершена")
+
         super().__init__()
 
     @property
@@ -171,7 +229,7 @@ class Order(BaseCounter):
         return self.quantity
 
     def __str__(self):
-        return f"Заказ: {self.product.name}, ..."
+        return f"Заказ: {self.product.name}, Количество: {self.quantity}, Итого: {self.total_value} руб."
 
 
 class Sorting:
@@ -240,6 +298,12 @@ class LawnGrass(Product):
         return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт. Страна: {self.country}"
 
 
+class ZeroQuantityError(Exception):
+    """Исключение для товаров с нулевым количеством"""
+    def __init__(self,product_name:str,operation:str):
+        self.product_name=product_name
+        self.operation=operation
+        super().__init__(f"Товар '{product_name}' не может быть добавлен: количество равно нулю")
 
 
 
