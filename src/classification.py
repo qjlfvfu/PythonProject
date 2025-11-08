@@ -121,7 +121,7 @@ class Category(BaseCounter):
         """Добавляет продукт в категорию"""
         self.__products.append(product)
         if not isinstance(other, Category):
-            raise TypeError("Можно складывать только объекты одинаковой категории!")
+            raise TypeError("Можно складывать только объекты одинаковой категории")
         Category.total_products += 1
 
     @property
