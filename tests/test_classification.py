@@ -3,21 +3,10 @@ import sys
 import unittest
 from abc import ABC
 from io import StringIO
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
-import pytest
-
-from src.classification import (
-    BaseCounter,
-    BaseProduct,
-    Category,
-    LawnGrass,
-    Order,
-    Product,
-    Smartphone,
-    Sorting,
-    ZeroQuantityError,
-)
+from src.classification import (BaseCounter, Category, LawnGrass, Order, Product, Smartphone, Sorting,
+                                ZeroQuantityError)
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
