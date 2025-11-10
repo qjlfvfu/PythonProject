@@ -12,7 +12,7 @@ class MixinInfo:
         super().__init__(*args, **kwargs)
         print(
             f"{self.__class__.__name__}('{getattr(self, 'name', '')}', '{getattr(self, 'description', '')}',"
-            f" {getattr(self, 'quantity', 0)}, {getattr(self, 'price', 0)})"
+            f" {getattr(self, 'price', 0)}, {getattr(self, 'quantity', 0)})"
         )
 
 
@@ -20,9 +20,10 @@ class BaseProduct(ABC, MixinInfo):
     """Абстрактный базовый класс для всех продуктов"""
 
     @abstractmethod
-    def __init__(self, name: str, description: str, quantity: float, price: float):
+    def __init__(self, name: str, description: str, price: float, quantity: float):
         self.name = name
         self.description = description
+        self.price = price
         self.quantity = quantity
         super().__init__()
 
@@ -40,15 +41,14 @@ class BaseProduct(ABC, MixinInfo):
 class Product(BaseProduct):
     """Класс описания свойств продукта"""
 
-    def __init__(self, name: str, description: str, quantity: float, price: float):
-        # Может добавить класс исключение и сюда?
+    def __init__(self, name: str, description: str, price: float, quantity: float):
         if quantity <= 0:
             raise ValueError("Товар с нулевым количеством не может быть добавлен")
         self.name = name
         self.description = description
-        self.quantity = quantity
         self.__price = price
-        super().__init__(name, description, quantity, price)
+        self.quantity = quantity
+        super().__init__(name, description, price, quantity)
 
     @property
     def price(self):
@@ -73,8 +73,8 @@ class Product(BaseProduct):
         return cls(
             name=product_data["name"],
             description=product_data["description"],
-            quantity=product_data["quantity"],
             price=product_data["price"],
+            quantity=product_data["quantity"],
         )
 
     def __str__(self):
@@ -119,7 +119,6 @@ class Category(BaseCounter):
         self.__products = products if products is not None else []
         super().__init__()
 
-        # Автоматически обновляем атрибуты класса при создании объекта
         Category.category_count += 1
         Category.total_products += len(self.__products)
 
@@ -209,7 +208,6 @@ class Order(BaseCounter):
         try:
             print(f"\n🔄 Начало обработки создания заказа для товара '{product_name}'")
 
-            # Проверяем количество
             if quantity <= 0:
                 raise ZeroQuantityError(product_name, "создан")
 
@@ -246,7 +244,6 @@ class Sorting:
         self.current_index = 0
         self.found_products = []
 
-        # Находим все продукты в указанной категории
         for category in categories:
             if category.name.lower() == self.need_find.lower():
                 self.found_products = category.get_products_objects()
@@ -278,8 +275,8 @@ class Sorting:
 class Smartphone(Product):
     """Дочерний Класс для смартфонов"""
 
-    def __init__(self, name, description, quantity, price, efficiency: float, model: str, memory: int, color: str):
-        super().__init__(name, description, quantity, price)
+    def __init__(self, name, description, price, quantity, efficiency: float, model: str, memory: int, color: str):
+        super().__init__(name, description, price, quantity)
         self.efficiency = efficiency
         self.model = model
         self.memory = memory
@@ -292,8 +289,8 @@ class Smartphone(Product):
 class LawnGrass(Product):
     """Дочерний Класс для газонной травы"""
 
-    def __init__(self, name, description, quantity, price, country: str, germination_period: str, color: str):
-        super().__init__(name, description, quantity, price)
+    def __init__(self, name, description, price, quantity, country: str, germination_period: str, color: str):
+        super().__init__(name, description, price, quantity)
         self.country = country
         self.germination_period = germination_period
         self.color = color
@@ -313,7 +310,6 @@ class ZeroQuantityError(Exception):
 
 if __name__ == "__main__":
     try:
-        # Загружаем данные из JSON
         result = load_transactions("products.json")
         if not result:
             print("Файл products.json пуст или не найден")
@@ -334,8 +330,8 @@ if __name__ == "__main__":
                 product = Product(
                     name=product_data["name"],
                     description=product_data.get("description", ""),
-                    quantity=product_data["quantity"],
                     price=product_data["price"],
+                    quantity=product_data["quantity"],
                 )
                 category_products.append(product)
 
@@ -358,17 +354,16 @@ if __name__ == "__main__":
 
         print(f"\n=== ТЕСТ ИЗМЕНЕНИЯ ЦЕН ===")
         if categories and categories[0].product_count > 0:
-            # Используем новый геттер вместо прямого доступа к приватному атрибуту
             products_objects = categories[0].get_products_objects()
             if products_objects:
-                product = products_objects[0]  # Получаем первый продукт
+                product = products_objects[0]
                 print(f"Исходная цена: {product.price}")
 
-                product.price = 150.0  # Валидное изменение
+                product.price = 150.0
                 print(f"После валидного изменения: {product.price}")
 
-                product.price = -50.0  # Невалидное изменение
-                print(f"После невалидного изменения: {product.price}")  # Должна остаться прежняя
+                product.price = -50.0
+                print(f"После невалидного изменения: {product.price}")
 
     except Exception as e:
         print(f"Ошибка: {e}")
