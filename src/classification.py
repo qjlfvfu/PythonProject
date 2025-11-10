@@ -1,5 +1,6 @@
+from abc import ABC, abstractmethod
 from typing import Any
-from abc import ABC,abstractmethod
+
 from src.utils import load_transactions
 
 
@@ -9,11 +10,13 @@ class MixinInfo:
     def __init__(self, *args, **kwargs):
         """Инициализация с логированием создания объекта"""
         super().__init__(*args, **kwargs)
-        print(f"{self.__class__.__name__}('{getattr(self, 'name', '')}', '{getattr(self, 'description', '')}',"
-              f" {getattr(self, 'price', 0)}, {getattr(self, 'quantity', 0)})")
+        print(
+            f"{self.__class__.__name__}('{getattr(self, 'name', '')}', '{getattr(self, 'description', '')}',"
+            f" {getattr(self, 'quantity', 0)}, {getattr(self, 'price', 0)})"
+        )
 
 
-class BaseProduct(ABC,MixinInfo):
+class BaseProduct(ABC, MixinInfo):
     """Абстрактный базовый класс для всех продуктов"""
 
     @abstractmethod
@@ -22,7 +25,6 @@ class BaseProduct(ABC,MixinInfo):
         self.description = description
         self.quantity = quantity
         super().__init__()
-        
 
     @abstractmethod
     def __add__(self, other):
@@ -101,7 +103,7 @@ class BaseCounter(ABC):
 
     @property
     @abstractmethod
-    def total_quantity(self)->int:
+    def total_quantity(self) -> int:
         pass
 
 
@@ -123,7 +125,7 @@ class Category(BaseCounter):
 
     def add_product(self, product):
         """Добавляет продукт в категорию с обработкой исключений"""
-        product_name = getattr(product, 'name', 'неизвестный товар')
+        product_name = getattr(product, "name", "неизвестный товар")
 
         try:
             print(f"\n🔄 Начало обработки добавления товара '{product_name}' в категорию '{self.name}'")
@@ -287,7 +289,6 @@ class Smartphone(Product):
         return f"{self.name} ({self.model}), {self.price} руб. Остаток: {self.quantity} шт. Память: {self.memory}GB"
 
 
-
 class LawnGrass(Product):
     """Дочерний Класс для газонной травы"""
 
@@ -303,11 +304,11 @@ class LawnGrass(Product):
 
 class ZeroQuantityError(Exception):
     """Исключение для товаров с нулевым количеством"""
+
     def __init__(self, product_name: str, operation: str):
         self.product_name = product_name
         self.operation = operation
         super().__init__(f"Товар '{product_name}' не может быть {operation}: количество равно нулю")
-
 
 
 if __name__ == "__main__":

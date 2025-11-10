@@ -4,10 +4,20 @@ import unittest
 from abc import ABC
 from io import StringIO
 from unittest.mock import patch
+
 import pytest
 
-from src.classification import ZeroQuantityError,Product,BaseProduct,Category,Sorting,Smartphone,LawnGrass,BaseCounter,Order,MixinInfo
-
+from src.classification import (
+    BaseCounter,
+    BaseProduct,
+    Category,
+    LawnGrass,
+    Order,
+    Product,
+    Smartphone,
+    Sorting,
+    ZeroQuantityError,
+)
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -113,6 +123,7 @@ class TestCategoryFeatures(unittest.TestCase):
 
         self.category.add_product(self.product3)
         self.assertEqual(self.category.product_count, 3)  # Было 4, стало 3
+
 
 class TestSortingFeatures(unittest.TestCase):
     """Тесты для класса Sorting"""
@@ -280,7 +291,7 @@ def test_mixin_output():
     sys.stdout = sys.__stdout__
     output = captured_output.getvalue().strip()
 
-    assert output == "Product('Test', 'Desc', 100.0, 5)"
+    assert output == "Product('Test', 'Desc', 5, 100.0)"
 
 
 def test_concrete_class_works():
@@ -326,52 +337,71 @@ class TestZeroQuantityError(unittest.TestCase):
         self.assertIn("обновлен", str(error2))
 
 
-class TestCategoryExceptions(unittest.TestCase):
-    """Тесты исключений в классе Category"""
+class TestProductExceptions(unittest.TestCase):
+    """Тесты исключений в классе Product"""
 
-    def test_add_non_product_to_category(self):
-        """Тест добавления не-продукта в категорию"""
-        category = Category("Test Category", "Description", [])
+    def test_product_creation_with_zero_quantity(self):
+        """Тест создания продукта с нулевым количеством"""
+        with self.assertRaises(ValueError) as context:
+            Product("Test Product", "Description", 0, 100.0)
 
-        # Теперь должно работать без ошибок AttributeError
-        with self.assertRaises(TypeError):
-            category.add_product("not a product")
+        self.assertEqual(str(context.exception), "Товар с нулевым количеством не может быть добавлен")
+
+    def test_product_creation_with_negative_quantity(self):
+        """Тест создания продукта с отрицательным количеством"""
+        with self.assertRaises(ValueError) as context:
+            Product("Test Product", "Description", -5, 100.0)
+
+        self.assertEqual(str(context.exception), "Товар с нулевым количеством не может быть добавлен")
+
+    def test_product_creation_with_positive_quantity(self):
+        """Тест создания продукта с положительным количеством"""
+        # Это должно работать без ошибок
+        product = Product("Test Product", "Description", 1, 100.0)
+        self.assertEqual(product.quantity, 1)
+        self.assertEqual(product.price, 100.0)
 
 
 class TestEdgeCases(unittest.TestCase):
     """Тесты граничных случаев"""
-
-    def test_category_with_zero_quantity_products(self):
-        """Тест Category с продуктами с нулевым количеством"""
-        # Вместо создания продукта с нулевым количеством (что невозможно),
-        # тестируем только с нормальными продуктами
-        normal_product1 = Product("Товар1", "Описание", 5, 100.0)
-        normal_product2 = Product("Товар2", "Описание", 3, 200.0)
-
-        category = Category("Тест", "Категория", [normal_product1, normal_product2])
-        self.assertEqual(category.total_quantity, 8)  # 5 + 3
 
     def test_order_with_zero_quantity(self):
         """Тест Order с нулевым количеством"""
         product = Product("Товар", "Описание", 10, 100.0)
 
         # Ожидаем исключение ZeroQuantityError
-        with self.assertRaises(ZeroQuantityError):
+        with self.assertRaises(ZeroQuantityError) as context:
             Order(product, 0)
 
+        self.assertEqual(str(context.exception), "Товар 'Товар' не может быть создан: количество равно нулю")
 
-class TestProductExceptions:
-    """Тесты исключений в классе Product (pytest version)"""
+    def test_order_with_positive_quantity(self):
+        """Тест Order с положительным количеством"""
+        product = Product("Товар", "Описание", 10, 100.0)
 
-    def test_product_creation_with_zero_quantity(self):
-        """Тест создания продукта с нулевым количеством"""
-        with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
-            Product("Test Product", "Description", 0, 100.0)
+        order = Order(product, 5)
+        self.assertEqual(order.quantity, 5)
+        self.assertEqual(order.total_value, 500.0)
 
-    def test_product_creation_with_negative_quantity(self):
-        """Тест создания продукта с отрицательным количеством"""
-        with pytest.raises(ValueError, match="Товар с нулевым количеством не может быть добавлен"):
-            Product("Test Product", "Description", -5, 100.0)
+
+class TestCategoryExceptions(unittest.TestCase):
+    """Тесты исключений в классе Category"""
+
+    def test_add_product_with_zero_quantity(self):
+        """Тест добавления продукта с нулевым количеством в категорию"""
+        category = Category("Test Category", "Description", [])
+
+        # Создаем mock объект для тестирования
+        from unittest.mock import Mock
+
+        mock_product = Mock(spec=Product)
+        mock_product.name = "Zero Product"
+        mock_product.quantity = 0
+
+        with self.assertRaises(ZeroQuantityError) as context:
+            category.add_product(mock_product)
+
+        self.assertEqual(str(context.exception), "Товар 'Zero Product' не может быть добавлен: количество равно нулю")
 
 
 class TestSmartphone:
@@ -387,7 +417,7 @@ class TestSmartphone:
             efficiency=95.5,
             model="15 Pro",
             memory=256,
-            color="Black"
+            color="Black",
         )
 
         assert smartphone.name == "iPhone 15"
@@ -409,7 +439,7 @@ class TestSmartphone:
             efficiency=90.0,
             model="S23",
             memory=128,
-            color="White"
+            color="White",
         )
 
         expected = "Samsung Galaxy (S23), 799.99 руб. Остаток: 5 шт. Память: 128GB"
@@ -425,7 +455,7 @@ class TestSmartphone:
             efficiency=80.0,
             model="Test",
             memory=64,
-            color="Red"
+            color="Red",
         )
 
         assert isinstance(smartphone, Product)
@@ -454,7 +484,7 @@ class TestLawnGrass:
             price=25.50,
             country="Germany",
             germination_period="14 дней",
-            color="Green"
+            color="Green",
         )
 
         assert grass.name == "Premium Grass"
@@ -474,7 +504,7 @@ class TestLawnGrass:
             price=15.75,
             country="Russia",
             germination_period="21 день",
-            color="Dark Green"
+            color="Dark Green",
         )
 
         expected = "Standard Grass, 15.75 руб. Остаток: 50 шт. Страна: Russia"
@@ -489,7 +519,7 @@ class TestLawnGrass:
             price=10.0,
             country="Test",
             germination_period="Test",
-            color="Test"
+            color="Test",
         )
 
         assert isinstance(grass, Product)
@@ -527,7 +557,7 @@ class TestMixinInfo:
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue().strip()
 
-        expected = "Product('Test Product', 'Test Description', 100.0, 5)"
+        expected = "Product('Test Product', 'Test Description', 5, 100.0)"
         assert output == expected
 
     def test_mixin_info_in_smartphone(self):
@@ -543,13 +573,13 @@ class TestMixinInfo:
             efficiency=80.0,
             model="Test",
             memory=64,
-            color="Red"
+            color="Red",
         )
 
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue().strip()
 
-        expected = "Smartphone('Test Phone', 'Test', 100.0, 1)"
+        expected = "Smartphone('Test Phone', 'Test', 1, 100.0)"
         assert output == expected
 
 
@@ -629,7 +659,7 @@ class TestIntegrationScenarios:
             efficiency=95.0,
             model="15 Pro",
             memory=256,
-            color="Black"
+            color="Black",
         )
 
         lawn_grass = LawnGrass(
@@ -639,7 +669,7 @@ class TestIntegrationScenarios:
             price=25.50,
             country="Germany",
             germination_period="14 дней",
-            color="Green"
+            color="Green",
         )
 
         regular_product = Product("Regular", "Desc", 50, 19.99)
@@ -663,7 +693,7 @@ class TestIntegrationScenarios:
         assert phone_order.total_value == 2 * 999.99
         assert grass_order.total_value == 10 * 25.50
 
-    @patch('builtins.input', return_value='Electronics')
+    @patch("builtins.input", return_value="Electronics")
     def test_sorting_with_different_product_types(self, mock_input):
         """Тест сортировки с разными типами продуктов"""
         smartphone = Smartphone("Phone", "Desc", 5, 500.0, 90.0, "A", 128, "Black")
@@ -734,14 +764,14 @@ class TestBaseCounter:
 
     def test_base_counter_is_abstract(self):
         """Тест, что BaseCounter является абстрактным классом"""
-        assert issubclass(BaseCounter,ABC)
+        assert issubclass(BaseCounter, ABC)
 
         # Проверяем, что класс действительно абстрактный
-        assert hasattr(BaseCounter, '__abstractmethods__')
+        assert hasattr(BaseCounter, "__abstractmethods__")
         abstract_methods = BaseCounter.__abstractmethods__
-        assert '__init__' in abstract_methods
-        assert '__str__' in abstract_methods
-        assert 'total_quantity' in abstract_methods
+        assert "__init__" in abstract_methods
+        assert "__str__" in abstract_methods
+        assert "total_quantity" in abstract_methods
 
     def test_cannot_instantiate_base_counter(self):
         """Тест, что нельзя создать экземпляр BaseCounter"""
@@ -784,9 +814,9 @@ class TestOrderAsBaseCounter:
 
     def test_order_implements_abstract_methods(self):
         """Тест, что Order реализует все абстрактные методы"""
-        assert hasattr(self.order, '__init__')
-        assert hasattr(self.order, '__str__')
-        assert hasattr(self.order, 'total_quantity')
+        assert hasattr(self.order, "__init__")
+        assert hasattr(self.order, "__str__")
+        assert hasattr(self.order, "total_quantity")
 
         # Проверяем работу методов
         result_str = str(self.order)
@@ -840,7 +870,7 @@ class TestPolymorphism:
             # Должны работать общие методы
             assert isinstance(str(counter), str)
             assert isinstance(counter.total_quantity, int)
-            assert hasattr(counter, 'name')
+            assert hasattr(counter, "name")
 
     def test_different_implementations(self):
         """Тест разных реализаций одного интерфейса"""
@@ -900,7 +930,7 @@ class TestIntegration:
 class TestDataLoading:
     """Тесты для загрузки данных из JSON"""
 
-    @patch('src.classification.load_transactions')
+    @patch("src.classification.load_transactions")
     def test_main_execution_with_mock_data(self, mock_load):
         """Тест основного выполнения с mock данными"""
         # Мокаем данные
@@ -909,13 +939,8 @@ class TestDataLoading:
                 "name": "Тестовая категория",
                 "description": "Для тестирования",
                 "products": [
-                    {
-                        "name": "Тестовый продукт",
-                        "description": "Пример продукта",
-                        "price": 100.0,
-                        "quantity": 5
-                    }
-                ]
+                    {"name": "Тестовый продукт", "description": "Пример продукта", "price": 100.0, "quantity": 5}
+                ],
             }
         ]
 
@@ -927,7 +952,7 @@ class TestDataLoading:
         assert len(result) == 1
         assert result[0]["name"] == "Тестовая категория"
 
-    @patch('src.classification.load_transactions')
+    @patch("src.classification.load_transactions")
     def test_main_with_empty_data(self, mock_load):
         """Тест выполнения с пустыми данными"""
         mock_load.return_value = []
@@ -963,14 +988,12 @@ if __name__ == "__main__":
     print("\n✅ Все основные тесты пройдены!")
 
 
-
 if __name__ == "__main__":
     # Быстрый тест
     test_mixin_output()
     test_concrete_class_works()
     test_abstract_methods_implemented()
     print("Все основные тесты пройдены! ✅")
-
 
 
 if __name__ == "__main__":
